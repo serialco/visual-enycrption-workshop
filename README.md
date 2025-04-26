@@ -44,4 +44,3 @@ MIT License — use freely with attribution.
 
 ---
 
-Made with 🧠 + 🧪 by [Your Name / Studio Name]
