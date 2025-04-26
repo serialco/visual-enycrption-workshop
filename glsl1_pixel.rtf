@@ -1,0 +1,43 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2821
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 uniform vec2 resolution;   // 2x width, 1x height\
+uniform vec2 inputRes;     // input image size\
+uniform float iTime;       // time uniform\
+\
+out vec4 fragColor;\
+\
+int getBlockPattern(vec2 inputCoord, vec2 offset, bool invert) \{\
+    float seed = dot(inputCoord, vec2(12.9898, 78.233)) + floor(iTime); \
+    vec2 patternOffset = floor(offset);\
+    float patternSeed = seed + dot(patternOffset, vec2(19.19, 73.31));\
+    float rnd = fract(sin(patternSeed) * 43758.5453);\
+    int bit = rnd > 0.5 ? 1 : 0;\
+    return invert ? 1 - bit : bit;\
+\}\
+\
+void main() \{\
+    vec2 fragCoord = gl_FragCoord.xy;\
+    bool isLeft = fragCoord.x < resolution.x * 0.5;\
+\
+    // Adjust to use either the left or right half of the canvas\
+    vec2 imageSpaceCoord = fragCoord - vec2(resolution.x * 0.5 * float(!isLeft), 0.0);\
+\
+    // Do not scale \'97 resolution is only 2x wide, not tall\
+    vec2 blockCoord = floor(vec2(imageSpaceCoord.x, imageSpaceCoord.y));\
+    vec2 inputUV = (blockCoord + 0.5) / inputRes;\
+\
+    float pixel = texture(sTD2DInputs[0], inputUV).r;\
+    bool isWhite = pixel > 0.99;\
+\
+    vec2 offset = mod(fragCoord, 2.0);\
+    bool invert = !isLeft && !isWhite;\
+    int value = getBlockPattern(blockCoord, offset, invert);\
+\
+    fragColor = TDOutputSwizzle(vec4(float(value), float(value), float(value), 1.0));\
+\}\
+}
